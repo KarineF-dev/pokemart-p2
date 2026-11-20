@@ -1,28 +1,35 @@
 <section class="container py-5">
   <h1 class="titulo mb-4"><i class="bi bi-box-seam me-2"></i>Meus pedidos</h1>
 
-  @if (pedidos.length == 0) {
+  @if (carregando) {
+    <div class="text-center py-5 text-secondary">
+      <div class="spinner-border text-danger mb-2"></div>
+      <p>Carregando pedidos...</p>
+    </div>
+  } @else if (erro != '') {
+    <div class="alert alert-danger">{{ erro }}</div>
+  } @else if (pedidos.length == 0) {
     <div class="alert alert-warning">
       Você ainda não fez nenhum pedido. Que tal dar uma olhada na
       <a href="vitrine" class="alert-link">vitrine</a>?
     </div>
   } @else {
     <div class="accordion" id="listaPedidos">
-      @for (p of pedidos; track p.numero; let i = $index) {
+      @for (p of pedidos; track p.codigoPedido; let i = $index) {
         <div class="accordion-item border-0 shadow-sm mb-3 rounded overflow-hidden">
           <h2 class="accordion-header">
             <button class="accordion-button" [class.collapsed]="i > 0" type="button"
-                    data-bs-toggle="collapse" [attr.data-bs-target]="'#pedido' + p.numero">
+                    data-bs-toggle="collapse" [attr.data-bs-target]="'#pedido' + p.codigoPedido">
               <div class="d-flex flex-wrap gap-3 align-items-center w-100 pe-3">
-                <span class="fw-bold">Pedido #{{ p.numero }}</span>
+                <span class="fw-bold">Pedido #{{ p.codigoPedido }}</span>
                 <span class="badge text-bg-success">Confirmado</span>
-                <small class="text-secondary">{{ p.data }}</small>
-                <span class="ms-auto fw-bold text-danger">R$ {{ p.total | number: '1.2-2' }}</span>
+                <small class="text-secondary">{{ p.dataPedido | date: 'dd/MM/yyyy' }}</small>
+                <span class="ms-auto fw-bold text-danger">R$ {{ p.valorTotal | number: '1.2-2' }}</span>
               </div>
             </button>
           </h2>
 
-          <div [id]="'pedido' + p.numero" class="accordion-collapse collapse" [class.show]="i == 0"
+          <div [id]="'pedido' + p.codigoPedido" class="accordion-collapse collapse" [class.show]="i == 0"
                data-bs-parent="#listaPedidos">
             <div class="accordion-body">
               <table class="table table-sm align-middle mb-3">
@@ -35,11 +42,11 @@
                   </tr>
                 </thead>
                 <tbody>
-                  @for (item of p.itens; track item.codigo) {
+                  @for (item of p.itens; track item.codigoItemPedido) {
                     <tr>
                       <td>
                         <div class="d-flex align-items-center gap-2">
-                          <img src="imagens/produtos/{{ item.codigo }}.jpg" class="miniatura" [alt]="item.nome">
+                          <img src="imagens/produtos/{{ item.codigoProduto }}.jpg" class="miniatura" [alt]="item.nome">
                           <span>{{ item.nome }}</span>
                         </div>
                       </td>
@@ -55,7 +62,7 @@
                 <small class="text-secondary">
                   <i class="bi bi-credit-card me-1"></i>Pago com {{ nomePagamento(p.pagamento) }}
                 </small>
-                <span class="fw-bold">Total: R$ {{ p.total | number: '1.2-2' }}</span>
+                <span class="fw-bold">Total: R$ {{ p.valorTotal | number: '1.2-2' }}</span>
               </div>
             </div>
           </div>

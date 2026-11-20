@@ -7,11 +7,19 @@
         <strong>Poké<span>Mart</span></strong>
       </div>
 
-      <h1>Crie sua conta, <span>treinador(a)!</span></h1>
-      <p class="text-white-50 small mb-4">Cadastre-se e comece sua jornada no PokéMart.</p>
+      @if (editando) {
+        <h1>Meus <span>dados</span></h1>
+        <p class="text-white-50 small mb-4">Mantenha seu cadastro atualizado para receber seus pedidos.</p>
+      } @else {
+        <h1>Crie sua conta, <span>treinador(a)!</span></h1>
+        <p class="text-white-50 small mb-4">Cadastre-se e comece sua jornada no PokéMart.</p>
+      }
 
       @if (mensagem != '') {
         <div class="alert alert-danger py-2 small">{{ mensagem }}</div>
+      }
+      @if (sucesso != '') {
+        <div class="alert alert-success py-2 small">{{ sucesso }}</div>
       }
 
       <form #form="ngForm" (ngSubmit)="cadastrar(form.valid)" [class.was-validated]="tentou">
@@ -21,7 +29,7 @@
           <div class="input-group has-validation">
             <span class="input-group-text"><i class="bi bi-person"></i></span>
             <input type="text" id="txtNome" name="nome" class="form-control"
-                   placeholder="Digite seu nome" [(ngModel)]="nome" required>
+                   placeholder="Digite seu nome" [(ngModel)]="obj.nome" required>
             <div class="invalid-feedback">Nome completo obrigatório!</div>
           </div>
         </div>
@@ -31,7 +39,7 @@
           <div class="input-group has-validation">
             <span class="input-group-text"><i class="bi bi-envelope"></i></span>
             <input type="email" id="txtEmail" name="email" class="form-control"
-                   placeholder="Digite seu e-mail" [(ngModel)]="email" required email>
+                   placeholder="Digite seu e-mail" [(ngModel)]="obj.email" required email>
             <div class="invalid-feedback">Informe um e-mail válido!</div>
           </div>
         </div>
@@ -41,7 +49,7 @@
           <div class="input-group has-validation">
             <span class="input-group-text"><i class="bi bi-lock"></i></span>
             <input type="password" id="txtSenha" name="senha" class="form-control"
-                   placeholder="Crie uma senha forte" [(ngModel)]="senha" required
+                   placeholder="Crie uma senha forte" [(ngModel)]="obj.senha" required
                    pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$">
             <div class="invalid-feedback">
               A senha deve ter pelo menos 8 caracteres, com uma letra maiúscula, uma minúscula, um número e um caractere especial.
@@ -55,7 +63,7 @@
             <div class="input-group has-validation">
               <span class="input-group-text"><i class="bi bi-person-vcard"></i></span>
               <input type="text" id="txtDocumento" name="documento" class="form-control"
-                     placeholder="000.000.000-00" [(ngModel)]="documento" required>
+                     placeholder="000.000.000-00" [(ngModel)]="obj.documento" required>
               <div class="invalid-feedback">Documento obrigatório!</div>
             </div>
           </div>
@@ -65,7 +73,7 @@
             <div class="input-group has-validation">
               <span class="input-group-text"><i class="bi bi-telephone"></i></span>
               <input type="tel" id="txtTelefone" name="telefone" class="form-control"
-                     placeholder="(11) 90000-0000" [(ngModel)]="telefone" required>
+                     placeholder="(11) 90000-0000" [(ngModel)]="obj.telefone" required>
               <div class="invalid-feedback">Telefone obrigatório!</div>
             </div>
           </div>
@@ -76,19 +84,25 @@
           <div class="input-group has-validation">
             <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
             <textarea id="txtEndereco" name="endereco" class="form-control" rows="3"
-                      placeholder="Rua, número, bairro, cidade" [(ngModel)]="endereco" required></textarea>
+                      placeholder="Rua, número, bairro, cidade" [(ngModel)]="obj.logradouro" required></textarea>
             <div class="invalid-feedback">Informe o seu endereço completo!</div>
           </div>
         </div>
 
         <button type="submit" class="btn btn-danger w-100 py-2 fw-semibold">
-          Criar conta <i class="bi bi-arrow-right ms-1"></i>
+          @if (editando) {
+            Salvar alterações <i class="bi bi-check-lg ms-1"></i>
+          } @else {
+            Criar conta <i class="bi bi-arrow-right ms-1"></i>
+          }
         </button>
       </form>
 
-      <p class="text-center small mt-4 mb-0">
-        Já tem uma conta? <a href="login" class="link-danger fw-semibold">Entrar</a>
-      </p>
+      @if (!editando) {
+        <p class="text-center small mt-4 mb-0">
+          Já tem uma conta? <a href="login" class="link-danger fw-semibold">Entrar</a>
+        </p>
+      }
     </div>
   </div>
 </section>

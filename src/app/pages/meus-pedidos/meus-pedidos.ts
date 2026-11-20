@@ -1,5 +1,7 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Pedido } from '../../models/pedido';
+import { PedidoService } from '../../services/pedido-service';
 
 @Component({
   selector: 'app-meus-pedidos',
@@ -8,10 +10,12 @@ import { CommonModule } from '@angular/common';
   styleUrl: './meus-pedidos.css',
 })
 export class MeusPedidos {
-  pedidos: any[] = [];
+  pedidos: Pedido[] = [];
   usuario: any = null;
+  carregando: boolean = true;
+  erro: string = '';
 
-  constructor() {
+  constructor(private service: PedidoService, private cd: ChangeDetectorRef) {
     this.usuario = JSON.parse(localStorage.getItem('usuarioLogado') || 'null');
 
     if (this.usuario == null) {
@@ -19,15 +23,19 @@ export class MeusPedidos {
       return;
     }
 
-    let todos = JSON.parse(localStorage.getItem('pedidos') || '[]');
-
-    for (let p of todos) {
-      if (p.email == this.usuario.email) {
-        this.pedidos.push(p);
+    // GET /api/pedidos/cliente/{codigo}: já vem do mais recente para o mais antigo
+    this.service.listarPorCliente(this.usuario.codigo).subscribe({
+      next: (dados) => {
+        this.pedidos = dados;
+        this.carregando = false;
+        this.cd.detectChanges();
+      },
+      error: (err) => {
+        this.erro = 'Não foi possível carregar seus pedidos. Tente mais tarde.';
+        this.carregando = false;
+        this.cd.detectChanges();
       }
-    }
-
-    this.pedidos.reverse();
+    });
   }
 
   nomePagamento(tipo: string): string {

@@ -1,6 +1,5 @@
 import { ItemCesta } from './item-cesta';
 import { Produto } from './produto';
-import { LISTA_PRODUTOS } from './lista-produtos';
 
 export class Cesta {
   itens: ItemCesta[] = [];
@@ -9,16 +8,16 @@ export class Cesta {
     this.carregar();
   }
 
+  // Os produtos agora vêm da API, então a cesta guarda o produto inteiro
+  // junto com a quantidade (antes guardava só o código e buscava na lista fixa).
   carregar(): void {
     let salvos = JSON.parse(localStorage.getItem('cesta') || '[]');
     for (let s of salvos) {
-      for (let p of LISTA_PRODUTOS) {
-        if (p.codigo == s.codigo) {
-          let item = new ItemCesta();
-          item.produto = p;
-          item.quantidade = s.quantidade;
-          this.itens.push(item);
-        }
+      if (s.produto) {
+        let item = new ItemCesta();
+        item.produto = s.produto;
+        item.quantidade = s.quantidade;
+        this.itens.push(item);
       }
     }
   }
@@ -26,7 +25,7 @@ export class Cesta {
   salvar(): void {
     let dados: any[] = [];
     for (let item of this.itens) {
-      dados.push({ codigo: item.produto.codigo, quantidade: item.quantidade });
+      dados.push({ produto: item.produto, quantidade: item.quantidade });
     }
     localStorage.setItem('cesta', JSON.stringify(dados));
   }

@@ -1,8 +1,8 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Produto } from '../../models/produto';
-import { LISTA_PRODUTOS } from '../../models/lista-produtos';
 import { Cesta } from '../../models/cesta';
+import { ProdutoService } from '../../services/produto-service';
 
 @Component({
   selector: 'app-destaques',
@@ -15,12 +15,22 @@ export class Destaques {
   cesta: Cesta = new Cesta();
   mensagem: string = '';
 
-  constructor() {
-    for (let produto of LISTA_PRODUTOS) {
-      if (produto.destaque == 1 && this.lista.length < 6) {
-        this.lista.push(produto);
+  constructor(private service: ProdutoService, private cd: ChangeDetectorRef) {
+    // GET /api/produto/vitrine devolve só os produtos com destaque
+    this.service.carregarVitrine().subscribe({
+      next: (dados) => {
+        for (let produto of dados) {
+          if (this.lista.length < 6) {
+            this.lista.push(produto);
+          }
+        }
+        this.cd.detectChanges();
+      },
+      error: (err) => {
+        // se a API estiver fora do ar, a seção de destaques fica vazia
+        this.lista = [];
       }
-    }
+    });
   }
 
   desconto(produto: Produto): number {

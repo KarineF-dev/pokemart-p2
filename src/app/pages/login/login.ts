@@ -1,5 +1,7 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Cliente } from '../../models/cliente';
+import { ClienteService } from '../../services/cliente-service';
 
 @Component({
   selector: 'app-login',
@@ -14,7 +16,8 @@ export class Login {
   mensagem = '';
   tentou = false;
 
-  constructor() {
+  constructor(private service: ClienteService, private cd: ChangeDetectorRef) {
+    // conta de demonstração que já vem cadastrada no banco (data.sql do backend)
     this.email = 'karine@pokemart.com';
     this.senha = 'Teste@123';
   }
@@ -27,14 +30,26 @@ export class Login {
       return;
     }
 
-    localStorage.setItem('usuarioLogado', JSON.stringify({
-      nome: 'Karine',
-      email: this.email,
-      documento: '000.000.000-00',
-      telefone: '(11) 90000-0000',
-      endereco: 'Rua das Pokébolas, 151, Pallet Town, São Paulo, SP'
-    }));
+    let obj = new Cliente();
+    obj.email = this.email;
+    obj.senha = this.senha;
 
-    window.location.href = '/';
+    // POST /api/cliente/login: devolve o cliente, ou um objeto vazio se errar
+    this.service.login(obj).subscribe({
+      next: (dados) => {
+        if (dados.codigo > 0) {
+          dados.senha = ''; // não deixa a senha guardada no navegador
+          localStorage.setItem('usuarioLogado', JSON.stringify(dados));
+          window.location.href = '/';
+        } else {
+          this.mensagem = 'E-mail ou senha incorretos.';
+          this.cd.detectChanges();
+        }
+      },
+      error: (err) => {
+        this.mensagem = 'Não foi possível conectar ao servidor. Tente mais tarde.';
+        this.cd.detectChanges();
+      }
+    });
   }
 }

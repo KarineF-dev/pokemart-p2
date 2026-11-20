@@ -1,10 +1,10 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Produto } from '../../models/produto';
-import { LISTA_PRODUTOS } from '../../models/lista-produtos';
 import { Cesta } from '../../models/cesta';
+import { ProdutoService } from '../../services/produto-service';
 
 @Component({
   selector: 'app-detalhe',
@@ -15,19 +15,29 @@ import { Cesta } from '../../models/cesta';
 export class Detalhe {
   produto: Produto = new Produto();
   encontrado: boolean = false;
+  carregando: boolean = true;
   quantidade: number = 1;
   mensagem: string = '';
   cesta: Cesta = new Cesta();
 
-  constructor(private route: ActivatedRoute) {
+  constructor(private route: ActivatedRoute, private service: ProdutoService, private cd: ChangeDetectorRef) {
     let codigo = Number(this.route.snapshot.params['codigo']);
 
-    for (let p of LISTA_PRODUTOS) {
-      if (p.codigo == codigo) {
-        this.produto = p;
-        this.encontrado = true;
+    // GET /api/produto/{codigo}: se não existir, a API devolve um objeto vazio
+    this.service.buscar(codigo).subscribe({
+      next: (dados) => {
+        if (dados.codigo > 0) {
+          this.produto = dados;
+          this.encontrado = true;
+        }
+        this.carregando = false;
+        this.cd.detectChanges();
+      },
+      error: (err) => {
+        this.carregando = false;
+        this.cd.detectChanges();
       }
-    }
+    });
   }
 
   economia(): number {

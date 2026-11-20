@@ -1,5 +1,10 @@
 <section class="container py-5">
-  @if (encontrado) {
+  @if (carregando) {
+    <div class="text-center py-5 text-secondary">
+      <div class="spinner-border text-danger mb-2"></div>
+      <p>Carregando produto...</p>
+    </div>
+  } @else if (encontrado) {
     <div class="row g-4 align-items-center">
       <div class="col-md-5">
         <div class="area-img">

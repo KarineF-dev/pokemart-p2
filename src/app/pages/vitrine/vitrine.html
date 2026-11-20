@@ -1,6 +1,6 @@
 <section class="container py-5">
   <h1 class="titulo">{{ categoria == '' ? 'Todos os produtos' : categoria }}</h1>
-  <p class="text-secondary">{{ lista.length }} produto(s) encontrado(s)</p>
+  <p class="text-secondary">@if (!carregando) { {{ lista.length }} produto(s) encontrado(s) }</p>
 
   @if (mensagem != '') {
     <div class="alert alert-success py-2 d-flex justify-content-between align-items-center">
@@ -18,52 +18,65 @@
     }
   </div>
 
-  <div class="row g-3">
-    @for (obj of lista; track obj.codigo) {
-      <div class="col-6 col-md-4 col-lg-3">
-        <div class="card h-100 border-0 shadow-sm produto">
+  @if (carregando) {
+    <div class="text-center py-5 text-secondary">
+      <div class="spinner-border text-danger mb-2"></div>
+      <p>Carregando produtos...</p>
+    </div>
+  }
 
-          <a href="detalhe/{{ obj.codigo }}" class="text-decoration-none text-reset">
-            <div class="area-img">
-              @if (obj.destaque == 1) {
-                <span class="badge bg-warning text-dark selo">Oferta</span>
+  @if (erro != '') {
+    <div class="alert alert-danger">{{ erro }}</div>
+  }
+
+  @if (!carregando && erro == '') {
+    <div class="row g-3">
+      @for (obj of lista; track obj.codigo) {
+        <div class="col-6 col-md-4 col-lg-3">
+          <div class="card h-100 border-0 shadow-sm produto">
+
+            <a href="detalhe/{{ obj.codigo }}" class="text-decoration-none text-reset">
+              <div class="area-img">
+                @if (obj.destaque == 1) {
+                  <span class="badge bg-warning text-dark selo">Oferta</span>
+                }
+                @if (obj.quantidade == 0) {
+                  <span class="badge bg-secondary selo-direita">Esgotado</span>
+                }
+                <span class="pokebola"></span>
+                <img src="imagens/produtos/{{ obj.codigo }}.jpg" [alt]="obj.nome"
+                     (error)="$any($event.target).style.display = 'none'">
+              </div>
+
+              <div class="card-body pb-0">
+                <small class="text-secondary">{{ obj.categoria }}</small>
+                <h3 class="card-title h6 fw-bold">{{ obj.nome }}</h3>
+                <small class="text-muted text-decoration-line-through">R$ {{ obj.valor | number: '1.2-2' }}</small>
+                <div class="preco">R$ {{ obj.valorPromo | number: '1.2-2' }}</div>
+              </div>
+            </a>
+
+            <div class="card-body pt-2 d-grid gap-2">
+              @if (obj.quantidade > 0) {
+                <button class="btn btn-danger btn-sm" (click)="comprarAgora(obj)">
+                  <i class="bi bi-lightning-fill me-1"></i>Comprar agora
+                </button>
+                <button class="btn btn-outline-dark btn-sm" (click)="comprar(obj)">
+                  <i class="bi bi-cart-plus me-1"></i>Adicionar ao carrinho
+                </button>
+              } @else {
+                <button class="btn btn-secondary btn-sm" disabled>Esgotado</button>
               }
-              @if (obj.quantidade == 0) {
-                <span class="badge bg-secondary selo-direita">Esgotado</span>
-              }
-              <span class="pokebola"></span>
-              <img src="imagens/produtos/{{ obj.codigo }}.jpg" [alt]="obj.nome"
-                   (error)="$any($event.target).style.display = 'none'">
             </div>
 
-            <div class="card-body pb-0">
-              <small class="text-secondary">{{ obj.categoria }}</small>
-              <h3 class="card-title h6 fw-bold">{{ obj.nome }}</h3>
-              <small class="text-muted text-decoration-line-through">R$ {{ obj.valor | number: '1.2-2' }}</small>
-              <div class="preco">R$ {{ obj.valorPromo | number: '1.2-2' }}</div>
-            </div>
-          </a>
-
-          <div class="card-body pt-2 d-grid gap-2">
-            @if (obj.quantidade > 0) {
-              <button class="btn btn-danger btn-sm" (click)="comprarAgora(obj)">
-                <i class="bi bi-lightning-fill me-1"></i>Comprar agora
-              </button>
-              <button class="btn btn-outline-dark btn-sm" (click)="comprar(obj)">
-                <i class="bi bi-cart-plus me-1"></i>Adicionar ao carrinho
-              </button>
-            } @else {
-              <button class="btn btn-secondary btn-sm" disabled>Esgotado</button>
-            }
           </div>
-
         </div>
-      </div>
-    } @empty {
-      <div class="col-12 text-center py-5 text-secondary">
-        <i class="bi bi-search fs-1 d-block mb-2"></i>
-        Nenhum produto nessa categoria ainda.
-      </div>
-    }
-  </div>
+      } @empty {
+        <div class="col-12 text-center py-5 text-secondary">
+          <i class="bi bi-search fs-1 d-block mb-2"></i>
+          Nenhum produto nessa categoria ainda.
+        </div>
+      }
+    </div>
+  }
 </section>

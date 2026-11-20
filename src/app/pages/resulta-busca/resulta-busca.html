@@ -1,6 +1,6 @@
 <section class="container py-5">
   <h1 class="titulo">Resultados para "{{ busca }}"</h1>
-  <p class="text-secondary">{{ lista.length }} produto(s) encontrado(s)</p>
+  <p class="text-secondary">@if (!carregando) { {{ lista.length }} produto(s) encontrado(s) }</p>
 
   @if (mensagem != '') {
     <div class="alert alert-success py-2 d-flex justify-content-between align-items-center">
@@ -9,50 +9,63 @@
     </div>
   }
 
-  <div class="row g-3">
-    @for (obj of lista; track obj.codigo) {
-      <div class="col-6 col-md-4 col-lg-3">
-        <div class="card h-100 border-0 shadow-sm produto">
-          <div class="area-img">
-            @if (obj.destaque == 1) {
-              <span class="badge bg-warning text-dark selo">Oferta</span>
-            }
-            @if (obj.quantidade == 0) {
-              <span class="badge bg-secondary selo-direita">Esgotado</span>
-            }
-            <span class="pokebola"></span>
-            <img src="imagens/produtos/{{ obj.codigo }}.jpg" [alt]="obj.nome"
-                 (error)="$any($event.target).style.display = 'none'">
-          </div>
+  @if (carregando) {
+    <div class="text-center py-5 text-secondary">
+      <div class="spinner-border text-danger mb-2"></div>
+      <p>Carregando produtos...</p>
+    </div>
+  }
 
-          <div class="card-body d-flex flex-column">
-            <small class="text-secondary">{{ obj.categoria }}</small>
-            <h3 class="card-title h6 fw-bold">{{ obj.nome }}</h3>
+  @if (erro != '') {
+    <div class="alert alert-danger">{{ erro }}</div>
+  }
 
-            <div class="mt-auto">
-              <small class="text-muted text-decoration-line-through">
-                R$ {{ obj.valor | number: '1.2-2' }}
-              </small>
-              <div class="preco">R$ {{ obj.valorPromo | number: '1.2-2' }}</div>
+  @if (!carregando && erro == '') {
+    <div class="row g-3">
+      @for (obj of lista; track obj.codigo) {
+        <div class="col-6 col-md-4 col-lg-3">
+          <div class="card h-100 border-0 shadow-sm produto">
+            <div class="area-img">
+              @if (obj.destaque == 1) {
+                <span class="badge bg-warning text-dark selo">Oferta</span>
+              }
+              @if (obj.quantidade == 0) {
+                <span class="badge bg-secondary selo-direita">Esgotado</span>
+              }
+              <span class="pokebola"></span>
+              <img src="imagens/produtos/{{ obj.codigo }}.jpg" [alt]="obj.nome"
+                   (error)="$any($event.target).style.display = 'none'">
+            </div>
 
-              <div class="d-flex gap-2 mt-2">
-                <a href="detalhe/{{ obj.codigo }}" class="btn btn-outline-dark btn-sm flex-fill">Detalhe</a>
-                @if (obj.quantidade > 0) {
-                  <button class="btn btn-danger btn-sm flex-fill" (click)="comprar(obj)">Comprar</button>
-                }
+            <div class="card-body d-flex flex-column">
+              <small class="text-secondary">{{ obj.categoria }}</small>
+              <h3 class="card-title h6 fw-bold">{{ obj.nome }}</h3>
+
+              <div class="mt-auto">
+                <small class="text-muted text-decoration-line-through">
+                  R$ {{ obj.valor | number: '1.2-2' }}
+                </small>
+                <div class="preco">R$ {{ obj.valorPromo | number: '1.2-2' }}</div>
+
+                <div class="d-flex gap-2 mt-2">
+                  <a href="detalhe/{{ obj.codigo }}" class="btn btn-outline-dark btn-sm flex-fill">Detalhe</a>
+                  @if (obj.quantidade > 0) {
+                    <button class="btn btn-danger btn-sm flex-fill" (click)="comprar(obj)">Comprar</button>
+                  }
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    } @empty {
-      <div class="col-12 text-center py-5 text-secondary">
-        <i class="bi bi-search fs-1 d-block mb-2"></i>
-        Nenhum produto encontrado para "{{ busca }}".
-        <div class="mt-3">
-          <a href="vitrine" class="btn btn-danger">Ver todos os produtos</a>
+      } @empty {
+        <div class="col-12 text-center py-5 text-secondary">
+          <i class="bi bi-search fs-1 d-block mb-2"></i>
+          Nenhum produto encontrado para "{{ busca }}".
+          <div class="mt-3">
+            <a href="vitrine" class="btn btn-danger">Ver todos os produtos</a>
+          </div>
         </div>
-      </div>
-    }
-  </div>
+      }
+    </div>
+  }
 </section>

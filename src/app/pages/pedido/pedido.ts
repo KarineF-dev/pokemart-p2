@@ -1,7 +1,10 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Cesta } from '../../models/cesta';
+import { Pedido as PedidoModel } from '../../models/pedido';
+import { ItemPedido } from '../../models/item-pedido';
+import { PedidoService } from '../../services/pedido-service';
 
 @Component({
   selector: 'app-pedido',
@@ -15,15 +18,18 @@ export class Pedido {
   pagamento: string = 'pix';
   frete: number = 19.90;
   concluido: boolean = false;
+  enviando: boolean = false;
   numeroPedido: number = 0;
+  mensagem: string = '';
 
-   constructor() {
+  constructor(private service: PedidoService, private cd: ChangeDetectorRef) {
     this.usuario = JSON.parse(localStorage.getItem('usuarioLogado') || 'null');
 
     if (this.usuario == null) {
       window.location.href = 'login';
     }
   }
+
   desconto(): number {
     if (this.pagamento == 'pix') {
       return this.cesta.total() * 0.05;
@@ -36,30 +42,39 @@ export class Pedido {
   }
 
   confirmar() {
-    let pedidos = JSON.parse(localStorage.getItem('pedidos') || '[]');
-    this.numeroPedido = 1000 + pedidos.length + 1;
+    // monta o pedido no formato que o backend espera
+    let pedido = new PedidoModel();
+    pedido.codigoCliente = this.usuario.codigo;
+    pedido.valorTotal = this.totalFinal();
+    pedido.entrega = this.usuario.logradouro;
+    pedido.pagamento = this.pagamento;
 
-    let itens: any[] = [];
     for (let item of this.cesta.itens) {
-      itens.push({
-        codigo: item.produto.codigo,
-        nome: item.produto.nome,
-        quantidade: item.quantidade,
-        valor: item.produto.valorPromo
-      });
+      let itemPedido = new ItemPedido();
+      itemPedido.codigoProduto = item.produto.codigo;
+      itemPedido.nome = item.produto.nome;
+      itemPedido.quantidade = item.quantidade;
+      itemPedido.valor = item.produto.valorPromo;
+      pedido.itens.push(itemPedido);
     }
 
-    pedidos.push({
-      numero: this.numeroPedido,
-      email: this.usuario.email,
-      data: new Date().toLocaleDateString('pt-BR'),
-      pagamento: this.pagamento,
-      total: this.totalFinal(),
-      itens: itens
-    });
+    this.enviando = true;
 
-    localStorage.setItem('pedidos', JSON.stringify(pedidos));
-    this.cesta.limpar();
-    this.concluido = true;
+    // POST /api/pedido: a resposta é um texto "Pedido gravado com sucesso! 7"
+    this.service.gravar(pedido).subscribe({
+      next: (dados) => {
+        // o número do pedido é o que vem depois do último espaço
+        this.numeroPedido = Number(dados.substring(dados.lastIndexOf(' ') + 1));
+        this.cesta.limpar();
+        this.concluido = true;
+        this.enviando = false;
+        this.cd.detectChanges();
+      },
+      error: (err) => {
+        this.mensagem = 'Não foi possível registrar o pedido. Tente novamente.';
+        this.enviando = false;
+        this.cd.detectChanges();
+      }
+    });
   }
 }
